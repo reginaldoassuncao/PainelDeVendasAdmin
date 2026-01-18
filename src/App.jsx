@@ -7,10 +7,12 @@ import Customers from './components/Customers';
 import NewCustomerModal from './components/NewCustomerModal';
 import Reports from './components/Reports';
 import Login from './components/Login';
+import Settings from './components/Settings';
 import { DollarSign, ShoppingBag, Users, TrendingUp, Search, Plus } from 'lucide-react';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [theme, setTheme] = useState(localStorage.getItem('painel-vendas-theme') || 'light');
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,6 +26,16 @@ function App() {
     averageTicket: 0,
     conversionRate: 3.2 // Valor base simulado
   });
+
+  useEffect(() => {
+    // Apply theme
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('painel-vendas-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     // Check for user session
@@ -191,14 +203,14 @@ function App() {
   }
 
   return (
-    <div className="flex bg-gray-50 min-h-screen">
+    <div className="flex bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} onLogout={handleLogout} />
       
       <main className="flex-1 md:ml-64 p-8">
         <header className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">{activeTab}</h1>
-            <p className="text-slate-500">
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-white uppercase tracking-tight">{activeTab}</h1>
+            <p className="text-slate-500 dark:text-slate-400">
               {activeTab === 'Painel Geral' ? 'Visão geral do seu negócio.' : 
                activeTab === 'Pedidos' ? 'Gerencie todas as vendas da loja.' :
                activeTab === 'Clientes' ? 'Gerencie sua base de clientes.' :
@@ -208,10 +220,10 @@ function App() {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-slate-800">{user.name}</p>
-              <p className="text-xs text-slate-500">{user.email}</p>
+              <p className="text-sm font-semibold text-slate-800 dark:text-white">{user.name}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
             </div>
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold border border-blue-200 uppercase">
+            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800 uppercase">
               {user.name.charAt(0)}
             </div>
           </div>
@@ -268,7 +280,7 @@ function App() {
                 <input
                   type="text"
                   placeholder="Buscar cliente ou ID..."
-                  className="pl-10 pr-4 py-2.5 w-full border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all"
+                  className="pl-10 pr-4 py-2.5 w-full border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm transition-all"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -301,7 +313,7 @@ function App() {
                 <input
                   type="text"
                   placeholder="Buscar cliente por nome ou email..."
-                  className="pl-10 pr-4 py-2.5 w-full border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all"
+                  className="pl-10 pr-4 py-2.5 w-full border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm transition-all"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -328,16 +340,13 @@ function App() {
           <Reports orders={orders} />
         )}
 
-        {['Configurações'].includes(activeTab) && (
-           <div className="flex flex-col items-center justify-center h-96 bg-white rounded-xl border border-dashed border-slate-300">
-             <div className="p-4 bg-slate-50 rounded-full mb-4">
-                <Users size={32} className="text-slate-400" />
-             </div>
-             <h2 className="text-xl font-bold text-slate-800 mb-2">Em Desenvolvimento</h2>
-             <p className="text-slate-500 text-center max-w-sm">
-               O módulo de <strong>{activeTab}</strong> estará disponível na próxima atualização do sistema de vendas.
-             </p>
-           </div>
+        {activeTab === 'Configurações' && (
+          <Settings 
+            user={user} 
+            onUserUpdate={handleLogin} 
+            theme={theme} 
+            onThemeChange={setTheme} 
+          />
         )}
       </main>
 

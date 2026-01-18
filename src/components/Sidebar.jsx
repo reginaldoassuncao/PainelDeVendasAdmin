@@ -11,7 +11,7 @@ const Sidebar = ({ activeTab, onTabChange, onLogout }) => {
   ];
 
   return (
-    <aside className="w-64 bg-slate-900 text-white min-h-screen fixed left-0 top-0 p-4 hidden md:block">
+    <aside className="w-64 bg-slate-900 dark:bg-slate-950 text-white min-h-screen fixed left-0 top-0 p-4 hidden md:block border-r border-slate-800 dark:border-slate-900 transition-colors">
       <div className="flex items-center gap-2 mb-10 px-2">
         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold">L</div>
         <h1 className="text-xl font-bold">Loja Admin</h1>
@@ -23,9 +23,9 @@ const Sidebar = ({ activeTab, onTabChange, onLogout }) => {
             <li key={item.label}>
               <button 
                 onClick={() => onTabChange(item.label)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left ${
                   activeTab === item.label 
-                    ? 'bg-blue-600 text-white' 
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' 
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                 }`}
               >
