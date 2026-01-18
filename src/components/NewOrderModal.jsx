@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
-const NewOrderModal = ({ isOpen, onClose, onSave }) => {
+const NewOrderModal = ({ isOpen, onClose, onSave, customers }) => {
   const [formData, setFormData] = useState({
     customer: '',
     amount: '',
@@ -36,15 +36,21 @@ const NewOrderModal = ({ isOpen, onClose, onSave }) => {
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Nome do Cliente</label>
-            <input
-              type="text"
+            <label className="block text-sm font-medium text-slate-700 mb-1">Selecionar Cliente</label>
+            <select
               required
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              placeholder="Ex: Ana Silva"
               value={formData.customer}
               onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
-            />
+            >
+              <option value="">Selecione um cliente...</option>
+              {customers.map(c => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
+            </select>
+            {customers.length === 0 && (
+              <p className="text-xs text-red-500 mt-1">Nenhum cliente cadastrado. Cadastre um cliente primeiro!</p>
+            )}
           </div>
           
           <div>

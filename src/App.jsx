@@ -5,6 +5,7 @@ import RecentOrders from './components/RecentOrders';
 import NewOrderModal from './components/NewOrderModal';
 import Customers from './components/Customers';
 import NewCustomerModal from './components/NewCustomerModal';
+import Reports from './components/Reports';
 import { DollarSign, ShoppingBag, Users, TrendingUp, Search, Plus } from 'lucide-react';
 
 function App() {
@@ -93,9 +94,12 @@ function App() {
   };
 
   const handleAddOrder = (newOrderData) => {
-    const newId = (Math.max(...orders.map(o => parseInt(o.id))) + 1).toString();
+    const nextId = orders.length > 0 
+      ? Math.max(...orders.map(o => parseInt(o.id))) + 1 
+      : 1001;
+      
     const newOrder = {
-      id: newId,
+      id: nextId.toString(),
       ...newOrderData
     };
     
@@ -105,9 +109,12 @@ function App() {
   };
 
   const handleAddCustomer = (newCustomerData) => {
-    const newId = (Math.max(...customers.map(c => parseInt(c.id))) + 1).toString();
+    const nextId = customers.length > 0 
+      ? Math.max(...customers.map(c => parseInt(c.id))) + 1 
+      : 1;
+
     const newCustomer = {
-      id: newId,
+      id: nextId.toString(),
       ...newCustomerData
     };
     
@@ -163,6 +170,7 @@ function App() {
               {activeTab === 'Painel Geral' ? 'Visão geral do seu negócio.' : 
                activeTab === 'Pedidos' ? 'Gerencie todas as vendas da loja.' :
                activeTab === 'Clientes' ? 'Gerencie sua base de clientes.' :
+               activeTab === 'Relatórios' ? 'Acompanhe o desempenho da sua loja.' :
                `Gerenciamento de ${activeTab.toLowerCase()}.`}
             </p>
           </div>
@@ -284,7 +292,11 @@ function App() {
           </>
         )}
 
-        {['Relatórios', 'Configurações'].includes(activeTab) && (
+        {activeTab === 'Relatórios' && (
+          <Reports orders={orders} />
+        )}
+
+        {['Configurações'].includes(activeTab) && (
            <div className="flex flex-col items-center justify-center h-96 bg-white rounded-xl border border-dashed border-slate-300">
              <div className="p-4 bg-slate-50 rounded-full mb-4">
                 <Users size={32} className="text-slate-400" />
@@ -301,6 +313,7 @@ function App() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         onSave={handleAddOrder}
+        customers={customers}
       />
 
       <NewCustomerModal
