@@ -1,0 +1,192 @@
+import React, { useState, useEffect } from 'react';
+import Sidebar from './components/Sidebar';
+import StatsCard from './components/StatsCard';
+import RecentOrders from './components/RecentOrders';
+import NewOrderModal from './components/NewOrderModal';
+import { DollarSign, ShoppingBag, Users, TrendingUp, Search, Plus } from 'lucide-react';
+
+function App() {
+  const [orders, setOrders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [stats, setStats] = useState({
+    revenue: 0,
+    ordersCount: 0,
+    customers: 0
+  });
+
+  useEffect(() => {
+    const storedOrders = localStorage.getItem('painel-vendas-orders');
+    
+    if (storedOrders) {
+      const parsedOrders = JSON.parse(storedOrders);
+      setOrders(parsedOrders);
+      calculateStats(parsedOrders);
+    } else {
+      // Seed Data
+      const initialOrders = [
+        { id: '1001', customer: 'João Silva', amount: 350.50, status: 'Concluído' },
+        { id: '1002', customer: 'Maria Oliveira', amount: 120.00, status: 'Pendente' },
+        { id: '1003', customer: 'Carlos Pereira', amount: 890.90, status: 'Concluído' },
+        { id: '1004', customer: 'Ana Souza', amount: 45.00, status: 'Cancelado' },
+        { id: '1005', customer: 'Roberto Santos', amount: 210.25, status: 'Pendente' },
+        { id: '1006', customer: 'Fernanda Lima', amount: 1250.00, status: 'Concluído' },
+        { id: '1007', customer: 'Paulo Costa', amount: 75.50, status: 'Pendente' },
+      ];
+      
+      localStorage.setItem('painel-vendas-orders', JSON.stringify(initialOrders));
+      setOrders(initialOrders);
+      calculateStats(initialOrders);
+    }
+  }, []);
+
+  const calculateStats = (currentOrders) => {
+    const totalRevenue = currentOrders.reduce((acc, order) => {
+      // Don't count cancelled orders
+      return order.status !== 'Cancelado' ? acc + order.amount : acc;
+    }, 0);
+    
+    const uniqueCustomers = new Set(currentOrders.map(o => o.customer)).size;
+    
+    setStats({
+      revenue: totalRevenue,
+      ordersCount: currentOrders.length,
+      customers: uniqueCustomers
+    });
+  };
+
+  const toggleStatus = (id) => {
+    const updatedOrders = orders.map(order => {
+      if (order.id === id) {
+        // Cycle: Pendente -> Concluído -> Cancelado -> Pendente
+        let newStatus = 'Pendente';
+        if (order.status === 'Pendente') newStatus = 'Concluído';
+        else if (order.status === 'Concluído') newStatus = 'Cancelado';
+        
+        return { ...order, status: newStatus };
+      }
+      return order;
+    });
+    
+    updateOrders(updatedOrders);
+  };
+
+  const handleAddOrder = (newOrderData) => {
+    const newId = (Math.max(...orders.map(o => parseInt(o.id))) + 1).toString();
+    const newOrder = {
+      id: newId,
+      ...newOrderData
+    };
+    
+    const updatedOrders = [newOrder, ...orders];
+    updateOrders(updatedOrders);
+    alert('Pedido criado com sucesso!');
+  };
+
+  const handleDeleteOrder = (id) => {
+    if (window.confirm('Tem certeza que deseja excluir este pedido?')) {
+      const updatedOrders = orders.filter(order => order.id !== id);
+      updateOrders(updatedOrders);
+    }
+  };
+
+  const updateOrders = (newOrders) => {
+    setOrders(newOrders);
+    calculateStats(newOrders);
+    localStorage.setItem('painel-vendas-orders', JSON.stringify(newOrders));
+  };
+
+  const filteredOrders = orders.filter(order => 
+    order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.id.includes(searchTerm)
+  );
+
+  return (
+    <div className="flex bg-gray-50 min-h-screen">
+      <Sidebar />
+      
+      <main className="flex-1 md:ml-64 p-8">
+        <header className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+            <p className="text-slate-500">Bem-vindo ao seu painel de controle.</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-semibold text-slate-800">Admin User</p>
+              <p className="text-xs text-slate-500">admin@loja.com.br</p>
+            </div>
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold border border-blue-200">
+              A
+            </div>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatsCard 
+            title="Receita Total" 
+            value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.revenue)} 
+            icon={DollarSign} 
+            color="bg-blue-600" 
+          />
+          <StatsCard 
+            title="Total de Pedidos" 
+            value={stats.ordersCount} 
+            icon={ShoppingBag} 
+            color="bg-purple-600" 
+          />
+          <StatsCard 
+            title="Clientes Ativos" 
+            value={stats.customers} 
+            icon={Users} 
+            color="bg-orange-500" 
+          />
+          <StatsCard 
+            title="Taxa de Conversão" 
+            value="3.2%" 
+            icon={TrendingUp} 
+            color="bg-green-500" 
+          />
+        </div>
+
+        {/* Toolbar Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div className="relative w-full sm:w-96">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={20} className="text-slate-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Buscar cliente ou ID..."
+              className="pl-10 pr-4 py-2.5 w-full border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm shadow-blue-200 w-full sm:w-auto justify-center"
+          >
+            <Plus size={20} />
+            <span>Novo Pedido</span>
+          </button>
+        </div>
+
+        <RecentOrders 
+          orders={filteredOrders} 
+          onStatusChange={toggleStatus} 
+          onDelete={handleDeleteOrder} 
+        />
+      </main>
+
+      <NewOrderModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSave={handleAddOrder}
+      />
+    </div>
+  );
+}
+
+export default App;
