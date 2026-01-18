@@ -59,7 +59,7 @@ A aplicação foi projetada seguindo as melhores práticas de segurança para ap
 
 > **Credenciais de Acesso (Demo):**  
 > **Usuário:** `admin@loja.com.br`  
-> **Senha:** `admin123`  
+> **Senha:** `123456`  
 > **Link do Projeto:** [painel-de-vendas-admin.vercel.app](https://painel-de-vendas-admin.vercel.app/)
 
 ## 💼 Evolução Profissional

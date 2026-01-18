@@ -59,7 +59,7 @@ const Login = () => {
                   <p className="text-sm font-bold text-blue-900 dark:text-blue-300">Dados de Acesso (Demo)</p>
                   <p className="text-xs text-blue-700 dark:text-blue-400 mt-1 leading-relaxed">
                     E-mail: <span className="font-mono font-bold">admin@loja.com.br</span><br />
-                    Senha: <span className="font-mono font-bold">admin123</span>
+                    Senha: <span className="font-mono font-bold">123456</span>
                   </p>
                 </div>
               </div>
@@ -163,7 +163,7 @@ const Login = () => {
                 </div>
                 <div>
                   <span className="text-xs font-bold text-slate-400 uppercase">Senha</span>
-                  <p className="text-slate-700 dark:text-slate-200 font-mono">admin123</p>
+                  <p className="text-slate-700 dark:text-slate-200 font-mono">123456</p>
                 </div>
               </div>
               
