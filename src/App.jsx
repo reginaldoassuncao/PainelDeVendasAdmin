@@ -9,6 +9,7 @@ function App() {
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('Painel Geral');
   const [stats, setStats] = useState({
     revenue: 0,
     ordersCount: 0,
@@ -103,13 +104,17 @@ function App() {
 
   return (
     <div className="flex bg-gray-50 min-h-screen">
-      <Sidebar />
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       
       <main className="flex-1 md:ml-64 p-8">
         <header className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
-            <p className="text-slate-500">Bem-vindo ao seu painel de controle.</p>
+            <h1 className="text-2xl font-bold text-slate-800">{activeTab}</h1>
+            <p className="text-slate-500">
+              {activeTab === 'Painel Geral' ? 'Visão geral do seu negócio.' : 
+               activeTab === 'Pedidos' ? 'Gerencie todas as vendas da loja.' :
+               `Gerenciamento de ${activeTab.toLowerCase()}.`}
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
@@ -122,62 +127,91 @@ function App() {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatsCard 
-            title="Receita Total" 
-            value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.revenue)} 
-            icon={DollarSign} 
-            color="bg-blue-600" 
-          />
-          <StatsCard 
-            title="Total de Pedidos" 
-            value={stats.ordersCount} 
-            icon={ShoppingBag} 
-            color="bg-purple-600" 
-          />
-          <StatsCard 
-            title="Clientes Ativos" 
-            value={stats.customers} 
-            icon={Users} 
-            color="bg-orange-500" 
-          />
-          <StatsCard 
-            title="Taxa de Conversão" 
-            value="3.2%" 
-            icon={TrendingUp} 
-            color="bg-green-500" 
-          />
-        </div>
-
-        {/* Toolbar Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div className="relative w-full sm:w-96">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={20} className="text-slate-400" />
+        {activeTab === 'Painel Geral' && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <StatsCard 
+                title="Receita Total" 
+                value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.revenue)} 
+                icon={DollarSign} 
+                color="bg-blue-600" 
+              />
+              <StatsCard 
+                title="Total de Pedidos" 
+                value={stats.ordersCount} 
+                icon={ShoppingBag} 
+                color="bg-purple-600" 
+              />
+              <StatsCard 
+                title="Clientes Ativos" 
+                value={stats.customers} 
+                icon={Users} 
+                color="bg-orange-500" 
+              />
+              <StatsCard 
+                title="Taxa de Conversão" 
+                value="3.2%" 
+                icon={TrendingUp} 
+                color="bg-green-500" 
+              />
             </div>
-            <input
-              type="text"
-              placeholder="Buscar cliente ou ID..."
-              className="pl-10 pr-4 py-2.5 w-full border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+            
+            <div className="mb-4 flex items-center justify-between">
+               <h2 className="text-lg font-bold text-slate-800">Últimas Vendas</h2>
+               <button onClick={() => setActiveTab('Pedidos')} className="text-blue-600 text-sm hover:underline">Ver tudo</button>
+            </div>
+            <RecentOrders 
+              orders={orders.slice(0, 5)} 
+              onStatusChange={toggleStatus} 
+              onDelete={handleDeleteOrder} 
             />
-          </div>
-          
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm shadow-blue-200 w-full sm:w-auto justify-center"
-          >
-            <Plus size={20} />
-            <span>Novo Pedido</span>
-          </button>
-        </div>
+          </>
+        )}
 
-        <RecentOrders 
-          orders={filteredOrders} 
-          onStatusChange={toggleStatus} 
-          onDelete={handleDeleteOrder} 
-        />
+        {activeTab === 'Pedidos' && (
+          <>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div className="relative w-full sm:w-96">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={20} className="text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Buscar cliente ou ID..."
+                  className="pl-10 pr-4 py-2.5 w-full border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm shadow-blue-200 w-full sm:w-auto justify-center"
+              >
+                <Plus size={20} />
+                <span>Novo Pedido</span>
+              </button>
+            </div>
+
+            <RecentOrders 
+              orders={filteredOrders} 
+              onStatusChange={toggleStatus} 
+              onDelete={handleDeleteOrder} 
+            />
+          </>
+        )}
+
+        {['Clientes', 'Relatórios', 'Configurações'].includes(activeTab) && (
+           <div className="flex flex-col items-center justify-center h-96 bg-white rounded-xl border border-dashed border-slate-300">
+             <div className="p-4 bg-slate-50 rounded-full mb-4">
+                <Users size={32} className="text-slate-400" />
+             </div>
+             <h2 className="text-xl font-bold text-slate-800 mb-2">Em Desenvolvimento</h2>
+             <p className="text-slate-500 text-center max-w-sm">
+               O módulo de <strong>{activeTab}</strong> estará disponível na próxima atualização do sistema de vendas.
+             </p>
+           </div>
+        )}
       </main>
 
       <NewOrderModal 

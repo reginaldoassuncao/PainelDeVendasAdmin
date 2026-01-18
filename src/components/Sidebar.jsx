@@ -1,7 +1,7 @@
 import React from 'react';
 import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, BarChart3 } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ activeTab, onTabChange }) => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Painel Geral' },
     { icon: ShoppingBag, label: 'Pedidos' },
@@ -19,12 +19,19 @@ const Sidebar = () => {
 
       <nav>
         <ul className="space-y-2">
-          {menuItems.map((item, index) => (
-            <li key={index}>
-              <a href="#" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${index === 0 ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+          {menuItems.map((item) => (
+            <li key={item.label}>
+              <button 
+                onClick={() => onTabChange(item.label)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left ${
+                  activeTab === item.label 
+                    ? 'bg-blue-600 text-white' 
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                }`}
+              >
                 <item.icon size={20} />
                 <span>{item.label}</span>
-              </a>
+              </button>
             </li>
           ))}
         </ul>
