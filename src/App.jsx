@@ -20,7 +20,9 @@ function App() {
   const [stats, setStats] = useState({
     revenue: 0,
     ordersCount: 0,
-    customers: 0
+    customers: 0,
+    averageTicket: 0,
+    conversionRate: 3.2 // Valor base simulado
   });
 
   useEffect(() => {
@@ -72,17 +74,23 @@ function App() {
 
   const calculateStats = (currentOrders) => {
     const totalRevenue = currentOrders.reduce((acc, order) => {
-      // Don't count cancelled orders
       return order.status !== 'Cancelado' ? acc + order.amount : acc;
     }, 0);
     
-    // We update unique customers based on currentOrders locally, but display stats based on orders
+    const activeOrders = currentOrders.filter(o => o.status !== 'Cancelado').length;
+    const avgTicket = activeOrders > 0 ? totalRevenue / activeOrders : 0;
+    
+    // Simulação: Taxa de conversão baseada em acessos fixos (Ex: 500 acessos)
+    const simulatedVisits = 500;
+    const conversion = (currentOrders.length / simulatedVisits) * 100;
+    
     const uniqueCustomers = new Set(currentOrders.map(o => o.customer)).size;
     
     setStats({
       revenue: totalRevenue,
       ordersCount: currentOrders.length,
-      customers: uniqueCustomers
+      customers: uniqueCustomers,
+      averageTicket: avgTicket
     });
   };
 
@@ -231,8 +239,8 @@ function App() {
                 color="bg-orange-500" 
               />
               <StatsCard 
-                title="Taxa de Conversão" 
-                value="3.2%" 
+                title="Ticket Médio" 
+                value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.averageTicket)} 
                 icon={TrendingUp} 
                 color="bg-green-500" 
               />
