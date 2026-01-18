@@ -45,13 +45,26 @@ const Login = () => {
 
         {/* Login Card */}
         <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl shadow-slate-200 dark:shadow-black/50 border border-slate-100 dark:border-slate-800 transition-colors">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form id="login-form" onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium border border-red-100">
+              <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm font-medium border border-red-100 dark:border-red-800">
                 {error}
               </div>
             )}
             
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 mb-6">
+              <div className="flex gap-3">
+                <Info className="text-blue-600 dark:text-blue-400 shrink-0" size={20} />
+                <div>
+                  <p className="text-sm font-bold text-blue-900 dark:text-blue-300">Dados de Acesso (Demo)</p>
+                  <p className="text-xs text-blue-700 dark:text-blue-400 mt-1 leading-relaxed">
+                    E-mail: <span className="font-mono font-bold">admin@loja.com.br</span><br />
+                    Senha: <span className="font-mono font-bold">admin123</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">E-mail Corporativo</label>
               <div className="relative">

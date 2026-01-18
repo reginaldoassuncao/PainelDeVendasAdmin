@@ -71,4 +71,4 @@ Este projeto iniciou como uma aplicação de estado local (`LocalStorage`) e foi
 - Configurar fluxos de CI/CD e Deployment automatizado.
 
 ---
-Desenvolvido por [Seu Nome] - Conecte-se comigo no [LinkedIn](seu-link-aqui)!
+Desenvolvido para fins de estudo e portfólio. Confira o projeto rodando [clicando aqui](https://painel-de-vendas-admin.vercel.app/).

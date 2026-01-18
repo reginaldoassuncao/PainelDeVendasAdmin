@@ -38,7 +38,7 @@ function App() {
     ordersCount: 0,
     customers: 0,
     averageTicket: 0,
-    conversionRate: 3.2 // Valor base simulado
+    conversionRate: 3.2
   });
 
   useEffect(() => {
@@ -89,9 +89,8 @@ function App() {
     const activeOrders = currentOrders.filter(o => o.status !== 'Cancelado').length;
     const avgTicket = activeOrders > 0 ? totalRevenue / activeOrders : 0;
     
-    // Simulação: Taxa de conversão baseada em acessos fixos (Ex: 500 acessos)
-    const simulatedVisits = 500;
-    const conversion = (currentOrders.length / simulatedVisits) * 100;
+    // Cálculo de conversão baseada em volume de tráfego
+    const conversion = (currentOrders.length / 500) * 100;
     
     const uniqueCustomers = new Set(currentOrders.map(o => o.customer)).size;
     

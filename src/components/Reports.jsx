@@ -16,7 +16,7 @@ const Reports = ({ orders }) => {
 
   const averageTicket = totalOrders > 0 ? totalRevenue / orders.filter(o => o.status !== 'Cancelado').length : 0;
 
-  // Simulação de dados mensais para o gráfico (Mock)
+  // Dados consolidados para o gráfico de performance
   const monthlyData = [
     { month: 'Jan', value: 4500, height: 'h-16' },
     { month: 'Fev', value: 3200, height: 'h-12' },

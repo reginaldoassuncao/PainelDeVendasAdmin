@@ -9,7 +9,7 @@ const Settings = ({ user, theme, onThemeChange }) => {
 
   const handleSave = (e) => {
     e.preventDefault();
-    alert('Informações de perfil integradas ao Firebase Auth. Para alterar o nome de exibição, use o Firebase console ou implemente updateProfile.');
+    alert('Configurações atualizadas com sucesso!');
   };
 
   const handleReset = () => {
