@@ -6,9 +6,11 @@ import NewOrderModal from './components/NewOrderModal';
 import Customers from './components/Customers';
 import NewCustomerModal from './components/NewCustomerModal';
 import Reports from './components/Reports';
+import Login from './components/Login';
 import { DollarSign, ShoppingBag, Users, TrendingUp, Search, Plus } from 'lucide-react';
 
 function App() {
+  const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,6 +24,12 @@ function App() {
   });
 
   useEffect(() => {
+    // Check for user session
+    const storedUser = localStorage.getItem('painel-vendas-user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
     // Load Orders
     const storedOrders = localStorage.getItem('painel-vendas-orders');
     if (storedOrders) {
@@ -148,6 +156,18 @@ function App() {
     localStorage.setItem('painel-vendas-customers', JSON.stringify(newCustomers));
   };
 
+  const handleLogin = (userData) => {
+    setUser(userData);
+    localStorage.setItem('painel-vendas-user', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    if (window.confirm('Deseja realmente sair do sistema?')) {
+      setUser(null);
+      localStorage.removeItem('painel-vendas-user');
+    }
+  };
+
   const filteredOrders = orders.filter(order => 
     order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.id.includes(searchTerm)
@@ -158,9 +178,13 @@ function App() {
     customer.email.toLowerCase().includes(searchTerm)
   );
 
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <div className="flex bg-gray-50 min-h-screen">
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} onLogout={handleLogout} />
       
       <main className="flex-1 md:ml-64 p-8">
         <header className="flex justify-between items-center mb-8">
@@ -176,11 +200,11 @@ function App() {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-slate-800">Admin User</p>
-              <p className="text-xs text-slate-500">admin@loja.com.br</p>
+              <p className="text-sm font-semibold text-slate-800">{user.name}</p>
+              <p className="text-xs text-slate-500">{user.email}</p>
             </div>
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold border border-blue-200">
-              A
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold border border-blue-200 uppercase">
+              {user.name.charAt(0)}
             </div>
           </div>
         </header>

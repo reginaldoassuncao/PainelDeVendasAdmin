@@ -1,7 +1,7 @@
 import React from 'react';
 import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, BarChart3 } from 'lucide-react';
 
-const Sidebar = ({ activeTab, onTabChange }) => {
+const Sidebar = ({ activeTab, onTabChange, onLogout }) => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Painel Geral' },
     { icon: ShoppingBag, label: 'Pedidos' },
@@ -38,7 +38,10 @@ const Sidebar = ({ activeTab, onTabChange }) => {
       </nav>
 
       <div className="absolute bottom-8 left-4 right-4">
-        <button className="flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
+        <button 
+          onClick={onLogout}
+          className="flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors text-left"
+        >
           <LogOut size={20} />
           <span>Sair</span>
         </button>
