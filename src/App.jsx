@@ -9,9 +9,21 @@ import Reports from './components/Reports';
 import Login from './components/Login';
 import Settings from './components/Settings';
 import { DollarSign, ShoppingBag, Users, TrendingUp, Search, Plus } from 'lucide-react';
+import { useAuth } from './context/AuthContext';
+import { db } from './firebase/config';
+import { 
+  collection, 
+  onSnapshot, 
+  addDoc, 
+  deleteDoc, 
+  doc, 
+  updateDoc,
+  query,
+  orderBy
+} from 'firebase/firestore';
 
 function App() {
-  const [user, setUser] = useState(null);
+  const { currentUser, logout } = useAuth();
   const [theme, setTheme] = useState(localStorage.getItem('painel-vendas-theme') || 'light');
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -19,6 +31,8 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Painel Geral');
+
+// ...
   const [stats, setStats] = useState({
     revenue: 0,
     ordersCount: 0,
@@ -38,51 +52,34 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    // Check for user session
-    const storedUser = localStorage.getItem('painel-vendas-user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    if (!currentUser) return;
 
-    // Load Orders
-    const storedOrders = localStorage.getItem('painel-vendas-orders');
-    if (storedOrders) {
-      const parsedOrders = JSON.parse(storedOrders);
-      setOrders(parsedOrders);
-      calculateStats(parsedOrders);
-    } else {
-      const initialOrders = [
-        { id: '1001', customer: 'João Silva', amount: 350.50, status: 'Concluído' },
-        { id: '1002', customer: 'Maria Oliveira', amount: 120.00, status: 'Pendente' },
-        { id: '1003', customer: 'Carlos Pereira', amount: 890.90, status: 'Concluído' },
-        { id: '1004', customer: 'Ana Souza', amount: 45.00, status: 'Cancelado' },
-        { id: '1005', customer: 'Roberto Santos', amount: 210.25, status: 'Pendente' },
-        { id: '1006', customer: 'Fernanda Lima', amount: 1250.00, status: 'Concluído' },
-        { id: '1007', customer: 'Paulo Costa', amount: 75.50, status: 'Pendente' },
-      ];
-      localStorage.setItem('painel-vendas-orders', JSON.stringify(initialOrders));
-      setOrders(initialOrders);
-      calculateStats(initialOrders);
-    }
+    // Sincronização em tempo real de Pedidos
+    const qOrders = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+    const unsubscribeOrders = onSnapshot(qOrders, (snapshot) => {
+      const ordersData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setOrders(ordersData);
+      calculateStats(ordersData);
+    });
 
-    // Load Customers
-    const storedCustomers = localStorage.getItem('painel-vendas-customers');
-    if (storedCustomers) {
-      setCustomers(JSON.parse(storedCustomers));
-    } else {
-      const initialCustomers = [
-        { id: '1', name: 'João Silva', email: 'joao.silva@email.com', phone: '(11) 99999-9999', status: 'Ativo' },
-        { id: '2', name: 'Maria Oliveira', email: 'maria.o@empresa.com', phone: '(21) 98888-8888', status: 'Ativo' },
-        { id: '3', name: 'Carlos Pereira', email: 'carlos.pereira@web.com.br', phone: '(31) 97777-7777', status: 'Ativo' },
-        { id: '4', name: 'Ana Souza', email: 'ana.souza@loja.com', phone: '(41) 96666-6666', status: 'Inativo' },
-        { id: '5', name: 'Roberto Santos', email: 'roberto@santos.adv.br', phone: '(51) 95555-5555', status: 'Ativo' },
-        { id: '6', name: 'Fernanda Lima', email: 'fernanda.lima@design.com', phone: '(61) 94444-4444', status: 'Ativo' },
-        { id: '7', name: 'Paulo Costa', email: 'paulo.costa@tech.com', phone: '(71) 93333-3333', status: 'Ativo' },
-      ];
-      localStorage.setItem('painel-vendas-customers', JSON.stringify(initialCustomers));
-      setCustomers(initialCustomers);
-    }
-  }, []);
+    // Sincronização em tempo real de Clientes
+    const qCustomers = query(collection(db, 'customers'), orderBy('name', 'asc'));
+    const unsubscribeCustomers = onSnapshot(qCustomers, (snapshot) => {
+      const customersData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setCustomers(customersData);
+    });
+
+    return () => {
+      unsubscribeOrders();
+      unsubscribeCustomers();
+    };
+  }, [currentUser]);
 
   const calculateStats = (currentOrders) => {
     const totalRevenue = currentOrders.reduce((acc, order) => {
@@ -106,85 +103,72 @@ function App() {
     });
   };
 
-  const toggleStatus = (id) => {
-    const updatedOrders = orders.map(order => {
-      if (order.id === id) {
-        let newStatus = 'Pendente';
-        if (order.status === 'Pendente') newStatus = 'Concluído';
-        else if (order.status === 'Concluído') newStatus = 'Cancelado';
-        
-        return { ...order, status: newStatus };
-      }
-      return order;
-    });
+  const toggleStatus = async (id, currentStatus) => {
+    let newStatus = 'Pendente';
+    if (currentStatus === 'Pendente') newStatus = 'Concluído';
+    else if (currentStatus === 'Concluído') newStatus = 'Cancelado';
     
-    updateOrders(updatedOrders);
+    try {
+      const orderRef = doc(db, 'orders', id);
+      await updateDoc(orderRef, { status: newStatus });
+    } catch (err) {
+      console.error("Erro ao atualizar status:", err);
+    }
   };
 
-  const handleAddOrder = (newOrderData) => {
-    const nextId = orders.length > 0 
-      ? Math.max(...orders.map(o => parseInt(o.id))) + 1 
-      : 1001;
-      
-    const newOrder = {
-      id: nextId.toString(),
-      ...newOrderData
-    };
-    
-    const updatedOrders = [newOrder, ...orders];
-    updateOrders(updatedOrders);
-    alert('Pedido criado com sucesso!');
+  const handleAddOrder = async (newOrderData) => {
+    try {
+      await addDoc(collection(db, 'orders'), {
+        ...newOrderData,
+        createdAt: new Date().toISOString()
+      });
+      alert('Pedido criado com sucesso!');
+    } catch (err) {
+      console.error("Erro ao adicionar pedido:", err);
+      alert('Erro ao criar pedido.');
+    }
   };
 
-  const handleAddCustomer = (newCustomerData) => {
-    const nextId = customers.length > 0 
-      ? Math.max(...customers.map(c => parseInt(c.id))) + 1 
-      : 1;
-
-    const newCustomer = {
-      id: nextId.toString(),
-      ...newCustomerData
-    };
-    
-    const updatedCustomers = [newCustomer, ...customers];
-    updateCustomers(updatedCustomers);
-    alert('Cliente cadastrado com sucesso!');
+  const handleAddCustomer = async (newCustomerData) => {
+    try {
+      await addDoc(collection(db, 'customers'), {
+        ...newCustomerData,
+        createdAt: new Date().toISOString()
+      });
+      alert('Cliente cadastrado com sucesso!');
+    } catch (err) {
+      console.error("Erro ao adicionar cliente:", err);
+      alert('Erro ao cadastrar cliente.');
+    }
   };
 
-  const handleDeleteOrder = (id) => {
+  const handleDeleteOrder = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este pedido?')) {
-      const updatedOrders = orders.filter(order => order.id !== id);
-      updateOrders(updatedOrders);
+      try {
+        await deleteDoc(doc(db, 'orders', id));
+      } catch (err) {
+        console.error("Erro ao excluir pedido:", err);
+      }
     }
   };
 
-  const handleDeleteCustomer = (id) => {
+  const handleDeleteCustomer = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este cliente?')) {
-      const updatedCustomers = customers.filter(customer => customer.id !== id);
-      updateCustomers(updatedCustomers);
+      try {
+        await deleteDoc(doc(db, 'customers', id));
+      } catch (err) {
+        console.error("Erro ao excluir cliente:", err);
+      }
     }
   };
 
-  const updateOrders = (newOrders) => {
-    setOrders(newOrders);
-    calculateStats(newOrders);
-    localStorage.setItem('painel-vendas-orders', JSON.stringify(newOrders));
-  };
-
-  const updateCustomers = (newCustomers) => {
-    setCustomers(newCustomers);
-    localStorage.setItem('painel-vendas-customers', JSON.stringify(newCustomers));
-  };
-
-  const handleLogin = (userData) => {
-    setUser(userData);
-    localStorage.setItem('painel-vendas-user', JSON.stringify(userData));
-  };
-
-  const handleLogout = () => {
-    if (window.confirm('Deseja realmente sair do sistema?')) {
-      setUser(null);
-      localStorage.removeItem('painel-vendas-user');
+  const handleLogout = async () => {
+    if (window.confirm('Deseja realmente sair?')) {
+      try {
+        await logout();
+      } catch (err) {
+        console.error("Erro ao sair:", err);
+      }
     }
   };
 
@@ -198,8 +182,8 @@ function App() {
     customer.email.toLowerCase().includes(searchTerm)
   );
 
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
+  if (!currentUser) {
+    return <Login />;
   }
 
   return (
@@ -220,11 +204,11 @@ function App() {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-slate-800 dark:text-white">{user.name}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+              <p className="text-sm font-semibold text-slate-800 dark:text-white">{currentUser.displayName || 'Administrador'}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{currentUser.email}</p>
             </div>
             <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800 uppercase">
-              {user.name.charAt(0)}
+              {(currentUser.displayName || currentUser.email).charAt(0)}
             </div>
           </div>
         </header>
@@ -342,8 +326,10 @@ function App() {
 
         {activeTab === 'Configurações' && (
           <Settings 
-            user={user} 
-            onUserUpdate={handleLogin} 
+            user={{ 
+              name: currentUser.displayName || 'Admin User', 
+              email: currentUser.email 
+            }} 
             theme={theme} 
             onThemeChange={setTheme} 
           />

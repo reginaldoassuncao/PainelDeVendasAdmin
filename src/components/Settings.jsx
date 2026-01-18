@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { User, Sun, Moon, Save, Trash2, Monitor } from 'lucide-react';
 
-const Settings = ({ user, onUserUpdate, theme, onThemeChange }) => {
+const Settings = ({ user, theme, onThemeChange }) => {
   const [formData, setFormData] = useState({
     userName: user?.name || 'Admin User',
-    userEmail: user?.email || 'admin@loja.com.br'
+    userEmail: user?.email || ''
   });
 
   const handleSave = (e) => {
     e.preventDefault();
-    onUserUpdate({ name: formData.userName, email: formData.userEmail });
-    alert('Configurações salvas!');
+    alert('Informações de perfil integradas ao Firebase Auth. Para alterar o nome de exibição, use o Firebase console ou implemente updateProfile.');
   };
 
   const handleReset = () => {

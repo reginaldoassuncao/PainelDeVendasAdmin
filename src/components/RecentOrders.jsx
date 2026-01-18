@@ -37,7 +37,7 @@ const RecentOrders = ({ orders, onStatusChange, onDelete }) => {
                 </td>
                 <td className="px-6 py-4">
                   <button 
-                    onClick={() => onStatusChange(order.id)}
+                    onClick={() => onStatusChange(order.id, order.status)}
                     className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity ${getStatusColor(order.status)}`}
                     title="Clique para alterar status"
                   >

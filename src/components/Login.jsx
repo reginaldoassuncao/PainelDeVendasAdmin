@@ -1,20 +1,33 @@
 import React, { useState } from 'react';
-import { Lock, Mail, Store, Info, X } from 'lucide-react';
+import { Lock, Mail, Store, Info, X, Loader2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
-const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState('admin@loja.com.br');
-  const [password, setPassword] = useState('admin123');
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     
-    // Simulação de autenticação profissional
-    if (email === 'admin@loja.com.br' && password === 'admin123') {
-      onLogin({ email, name: 'Admin User' });
-    } else {
-      setError('E-mail ou senha incorretos. Tente admin@loja.com.br / admin123');
+    try {
+      await login(email, password);
+    } catch (err) {
+      console.error(err);
+      if (err.code === 'auth/invalid-credential') {
+        setError('E-mail ou senha incorretos. Verifique suas credenciais no Firebase.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('Usuário não encontrado.');
+      } else {
+        setError('Erro ao fazer login. Tente novamente.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,9 +102,17 @@ const Login = ({ onLogin }) => {
 
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-100 dark:shadow-none flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-100 dark:shadow-none flex items-center justify-center gap-2"
             >
-              Entrar no Sistema
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin" size={20} />
+                  Processando...
+                </>
+              ) : (
+                'Entrar no Sistema'
+              )}
             </button>
           </form>
         </div>
