@@ -3,12 +3,16 @@ import Sidebar from './components/Sidebar';
 import StatsCard from './components/StatsCard';
 import RecentOrders from './components/RecentOrders';
 import NewOrderModal from './components/NewOrderModal';
+import Customers from './components/Customers';
+import NewCustomerModal from './components/NewCustomerModal';
 import { DollarSign, ShoppingBag, Users, TrendingUp, Search, Plus } from 'lucide-react';
 
 function App() {
   const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Painel Geral');
   const [stats, setStats] = useState({
     revenue: 0,
@@ -17,14 +21,13 @@ function App() {
   });
 
   useEffect(() => {
+    // Load Orders
     const storedOrders = localStorage.getItem('painel-vendas-orders');
-    
     if (storedOrders) {
       const parsedOrders = JSON.parse(storedOrders);
       setOrders(parsedOrders);
       calculateStats(parsedOrders);
     } else {
-      // Seed Data
       const initialOrders = [
         { id: '1001', customer: 'João Silva', amount: 350.50, status: 'Concluído' },
         { id: '1002', customer: 'Maria Oliveira', amount: 120.00, status: 'Pendente' },
@@ -34,10 +37,27 @@ function App() {
         { id: '1006', customer: 'Fernanda Lima', amount: 1250.00, status: 'Concluído' },
         { id: '1007', customer: 'Paulo Costa', amount: 75.50, status: 'Pendente' },
       ];
-      
       localStorage.setItem('painel-vendas-orders', JSON.stringify(initialOrders));
       setOrders(initialOrders);
       calculateStats(initialOrders);
+    }
+
+    // Load Customers
+    const storedCustomers = localStorage.getItem('painel-vendas-customers');
+    if (storedCustomers) {
+      setCustomers(JSON.parse(storedCustomers));
+    } else {
+      const initialCustomers = [
+        { id: '1', name: 'João Silva', email: 'joao.silva@email.com', phone: '(11) 99999-9999', status: 'Ativo' },
+        { id: '2', name: 'Maria Oliveira', email: 'maria.o@empresa.com', phone: '(21) 98888-8888', status: 'Ativo' },
+        { id: '3', name: 'Carlos Pereira', email: 'carlos.pereira@web.com.br', phone: '(31) 97777-7777', status: 'Ativo' },
+        { id: '4', name: 'Ana Souza', email: 'ana.souza@loja.com', phone: '(41) 96666-6666', status: 'Inativo' },
+        { id: '5', name: 'Roberto Santos', email: 'roberto@santos.adv.br', phone: '(51) 95555-5555', status: 'Ativo' },
+        { id: '6', name: 'Fernanda Lima', email: 'fernanda.lima@design.com', phone: '(61) 94444-4444', status: 'Ativo' },
+        { id: '7', name: 'Paulo Costa', email: 'paulo.costa@tech.com', phone: '(71) 93333-3333', status: 'Ativo' },
+      ];
+      localStorage.setItem('painel-vendas-customers', JSON.stringify(initialCustomers));
+      setCustomers(initialCustomers);
     }
   }, []);
 
@@ -47,6 +67,7 @@ function App() {
       return order.status !== 'Cancelado' ? acc + order.amount : acc;
     }, 0);
     
+    // We update unique customers based on currentOrders locally, but display stats based on orders
     const uniqueCustomers = new Set(currentOrders.map(o => o.customer)).size;
     
     setStats({
@@ -59,7 +80,6 @@ function App() {
   const toggleStatus = (id) => {
     const updatedOrders = orders.map(order => {
       if (order.id === id) {
-        // Cycle: Pendente -> Concluído -> Cancelado -> Pendente
         let newStatus = 'Pendente';
         if (order.status === 'Pendente') newStatus = 'Concluído';
         else if (order.status === 'Concluído') newStatus = 'Cancelado';
@@ -84,10 +104,29 @@ function App() {
     alert('Pedido criado com sucesso!');
   };
 
+  const handleAddCustomer = (newCustomerData) => {
+    const newId = (Math.max(...customers.map(c => parseInt(c.id))) + 1).toString();
+    const newCustomer = {
+      id: newId,
+      ...newCustomerData
+    };
+    
+    const updatedCustomers = [newCustomer, ...customers];
+    updateCustomers(updatedCustomers);
+    alert('Cliente cadastrado com sucesso!');
+  };
+
   const handleDeleteOrder = (id) => {
     if (window.confirm('Tem certeza que deseja excluir este pedido?')) {
       const updatedOrders = orders.filter(order => order.id !== id);
       updateOrders(updatedOrders);
+    }
+  };
+
+  const handleDeleteCustomer = (id) => {
+    if (window.confirm('Tem certeza que deseja excluir este cliente?')) {
+      const updatedCustomers = customers.filter(customer => customer.id !== id);
+      updateCustomers(updatedCustomers);
     }
   };
 
@@ -97,9 +136,19 @@ function App() {
     localStorage.setItem('painel-vendas-orders', JSON.stringify(newOrders));
   };
 
+  const updateCustomers = (newCustomers) => {
+    setCustomers(newCustomers);
+    localStorage.setItem('painel-vendas-customers', JSON.stringify(newCustomers));
+  };
+
   const filteredOrders = orders.filter(order => 
     order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.id.includes(searchTerm)
+  );
+
+  const filteredCustomers = customers.filter(customer =>
+    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.email.toLowerCase().includes(searchTerm)
   );
 
   return (
@@ -113,6 +162,7 @@ function App() {
             <p className="text-slate-500">
               {activeTab === 'Painel Geral' ? 'Visão geral do seu negócio.' : 
                activeTab === 'Pedidos' ? 'Gerencie todas as vendas da loja.' :
+               activeTab === 'Clientes' ? 'Gerencie sua base de clientes.' :
                `Gerenciamento de ${activeTab.toLowerCase()}.`}
             </p>
           </div>
@@ -201,7 +251,40 @@ function App() {
           </>
         )}
 
-        {['Clientes', 'Relatórios', 'Configurações'].includes(activeTab) && (
+        {activeTab === 'Clientes' && (
+          <>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div className="relative w-full sm:w-96">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={20} className="text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Buscar cliente por nome ou email..."
+                  className="pl-10 pr-4 py-2.5 w-full border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              
+              <button 
+                onClick={() => setIsCustomerModalOpen(true)}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm shadow-blue-200 w-full sm:w-auto justify-center"
+              >
+                <Plus size={20} />
+                <span>Novo Cliente</span>
+              </button>
+            </div>
+
+            <Customers 
+              customers={filteredCustomers} 
+              orders={orders}
+              onDelete={handleDeleteCustomer}
+            />
+          </>
+        )}
+
+        {['Relatórios', 'Configurações'].includes(activeTab) && (
            <div className="flex flex-col items-center justify-center h-96 bg-white rounded-xl border border-dashed border-slate-300">
              <div className="p-4 bg-slate-50 rounded-full mb-4">
                 <Users size={32} className="text-slate-400" />
@@ -218,6 +301,12 @@ function App() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         onSave={handleAddOrder}
+      />
+
+      <NewCustomerModal
+        isOpen={isCustomerModalOpen}
+        onClose={() => setIsCustomerModalOpen(false)}
+        onSave={handleAddCustomer}
       />
     </div>
   );
