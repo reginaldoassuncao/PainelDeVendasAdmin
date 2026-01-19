@@ -19,7 +19,8 @@ import {
   doc, 
   updateDoc,
   query,
-  orderBy
+  orderBy,
+  where
 } from 'firebase/firestore';
 
 function App() {
@@ -54,8 +55,12 @@ function App() {
   useEffect(() => {
     if (!currentUser) return;
 
-    // Sincronização em tempo real de Pedidos
-    const qOrders = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+    // Sincronização em tempo real de Pedidos do usuário logado
+    const qOrders = query(
+      collection(db, 'orders'), 
+      where('userId', '==', currentUser.uid),
+      orderBy('createdAt', 'desc')
+    );
     const unsubscribeOrders = onSnapshot(qOrders, (snapshot) => {
       const ordersData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -65,8 +70,12 @@ function App() {
       calculateStats(ordersData);
     });
 
-    // Sincronização em tempo real de Clientes
-    const qCustomers = query(collection(db, 'customers'), orderBy('name', 'asc'));
+    // Sincronização em tempo real de Clientes do usuário logado
+    const qCustomers = query(
+      collection(db, 'customers'), 
+      where('userId', '==', currentUser.uid),
+      orderBy('name', 'asc')
+    );
     const unsubscribeCustomers = onSnapshot(qCustomers, (snapshot) => {
       const customersData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -119,6 +128,7 @@ function App() {
     try {
       await addDoc(collection(db, 'orders'), {
         ...newOrderData,
+        userId: currentUser.uid,
         createdAt: new Date().toISOString()
       });
       alert('Pedido criado com sucesso!');
@@ -132,6 +142,7 @@ function App() {
     try {
       await addDoc(collection(db, 'customers'), {
         ...newCustomerData,
+        userId: currentUser.uid,
         createdAt: new Date().toISOString()
       });
       alert('Cliente cadastrado com sucesso!');

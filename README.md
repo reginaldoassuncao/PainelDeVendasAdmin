@@ -9,12 +9,12 @@ Um dashboard administrativo moderno para gestão de vendas e clientes, desenvolv
 
 ## ✨ Funcionalidades
 
-- **🔐 Autenticação Real (Identity Cloud):** Sistema de login seguro via Firebase Authentication.
-- **📈 Dashboard de Vendas:** Métricas em tempo real, Ticket Médio e Gráficos de Receita integrados ao banco.
-- **📦 Gestão de Pedidos (CRUD):** Persistência em nuvem com atualizações instantâneas entre dispositivos.
-- **👥 Gestão de Clientes:** Base de dados centralizada com sincronização assíncrona.
+- **🔐 Autenticação com Google:** Sistema de login seguro e rápido via Google Identity.
+- **🛡️ Multi-tenancy (Dados Privados):** Cada usuário possui seu próprio ambiente isolado, visualizando apenas seus próprios pedidos e clientes.
+- **📈 Dashboard de Vendas:** Métricas em tempo real, Ticket Médio e performance de faturamento.
+- **📦 Gestão de Pedidos (CRUD):** Persistência em nuvem privada com atualizações instantâneas.
+- **👥 Gestão de Clientes:** Base de dados individualizada com sincronização em tempo real.
 - **🌓 Dark Mode Nativo:** Alternância inteligente entre temas claro e escuro.
-- **⚡ Sincronização Real-Time:** Utilização de WebSockets (via Firestore) para refletir mudanças sem refresh.
 - **📱 Responsividade:** Interface adaptada para smartphones, tablets e desktops.
 
 ## 🚀 Tecnologias Utilizadas
@@ -57,9 +57,8 @@ A aplicação foi projetada seguindo as melhores práticas de segurança para ap
    npm run dev
    ```
 
-> **Credenciais de Acesso (Demo):**  
-> **Usuário:** `admin@loja.com.br`  
-> **Senha:** `123456`  
+> **Acesso ao Projeto:**  
+> Use qualquer conta Google para entrar. Seus dados ficarão salvos de forma privada na sua conta.  
 > **Link do Projeto:** [painel-de-vendas-admin.vercel.app](https://painel-de-vendas-admin.vercel.app/)
 
 ## 💼 Evolução Profissional

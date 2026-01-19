@@ -2,9 +2,13 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permite que qualquer usuário autenticado leia e escreva em todas as coleções
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    // Regras para pedidos e clientes individualizados
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid) && (request.resource == null || request.resource.data.userId == request.auth.uid);
+    }
+    
+    match /customers/{customerId} {
+      allow read, write: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid) && (request.resource == null || request.resource.data.userId == request.auth.uid);
     }
   }
 }
